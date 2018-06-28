@@ -6,6 +6,7 @@ class API {
     this._callMethod = this._callMethod.bind(this);
     this._fetch = this._fetch.bind(this);
     this._getRunParams = this._getRunParams.bind(this);
+    this._onHelp = this._onHelp.bind(this);
     this._onRun = this._onRun.bind(this);
     this._onRunReturn = this._onRunReturn.bind(this);
 
@@ -33,6 +34,124 @@ class API {
     } );
     document.querySelector(".run-command input[type='submit']")
       .addEventListener('click', this._onRun);
+    document.querySelector(".run-command #help")
+      .addEventListener('click', this._onHelp);
+  }
+
+  _onHelp() {
+    var command = document.querySelector(".run-command #command").value;
+    command = command.trim().replace(/ .*/, "");
+    var cmd = command.split(".");
+
+    // unfortunatelly the urls are inconsistent
+    // with the package names
+    switch(cmd[0]){
+    case "":
+      cmd = [];
+      break;
+    case "auth":
+      break;
+    case "beacon":
+    case "beacons":
+      cmd[0] = "beacons";
+      break;
+    case "cache":
+      break;
+    case "cloud":
+    case "clouds":
+      cmd[0] = "clouds";
+      break;
+    case "engine":
+    case "engines":
+      cmd[0] = "engines";
+      break;
+    case "execution":
+    case "modules":
+      cmd[0] = "modules";
+      break;
+    case "executor":
+    case "executors":
+      cmd[0] = "executor";
+      break;
+    case "fileserver":
+    case "file_server":
+      cmd[0] = "file_server";
+      break;
+    case "grain":
+    case "grains":
+      break;
+    case "master":
+    case "tops":
+      cmd[0] = "tops";
+      break;
+    case "netapi":
+      break;
+    case "output":
+      break;
+    case "pillar":
+    case "pillars":
+      cmd[0] = "pillar";
+      break;
+    case "proxy":
+      break;
+    case "queue":
+    case "queues":
+      cmd[0] = "queues";
+      break;
+    case "renderer":
+    case "renderers":
+      cmd[0] = "renderers";
+      break;
+    case "returner":
+    case "returners":
+      cmd[0] = "returners";
+      break;
+    case "roster":
+    case "rosters":
+      cmd[0] = "roster";
+      break;
+    case "runner":
+    case "runners":
+      cmd[0] = "runners";
+      break;
+    case "sdb":
+      break;
+    case "serializer":
+    case "serializers":
+      cmd[0] = "serializers";
+      break;
+    case "state":
+    case "states":
+      cmd[0] = "states";
+      break;
+    case "thorium":
+      break;
+    case "wheel":
+      break;
+    default:
+      cmd.unshift("modules");
+    }
+
+    var url = "https://docs.saltstack.com/en/latest/ref/";
+    switch(cmd.length){
+    case 0:
+      break;
+    case 1:
+      url += cmd[0] + "/all/index.html";
+      break;
+    case 2:
+      if(cmd[0] === "modules")
+        url += cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html";
+      else
+        url += cmd[0] + "/salt." + cmd[0] + "." + cmd[1] + ".html";
+      break;
+    default: // 3 and more
+      if(cmd[0] !== "modules")
+        return;
+      url += cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html#salt." + cmd[0] + "." + cmd[1] + "." + cmd[2];
+    }
+
+    window.open(url, '_blank');
   }
 
   _onRun() {
