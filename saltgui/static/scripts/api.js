@@ -6,6 +6,7 @@ class API {
     this._callMethod = this._callMethod.bind(this);
     this._fetch = this._fetch.bind(this);
     this._getRunParams = this._getRunParams.bind(this);
+    this._onDocu = this._onDocu.bind(this);
     this._onHelp = this._onHelp.bind(this);
     this._onRun = this._onRun.bind(this);
     this._onRunReturn = this._onRunReturn.bind(this);
@@ -36,6 +37,8 @@ class API {
       .addEventListener('click', this._onRun);
     document.querySelector(".run-command #help")
       .addEventListener('click', this._onHelp);
+    document.querySelector(".run-command #docu")
+      .addEventListener('click', this._onDocu);
   }
 
   _onHelp() {
@@ -154,6 +157,23 @@ class API {
     window.open(url, '_blank');
   }
 
+  _onDocu() {
+    var button = document.querySelector(".run-command input[type='submit']");
+    var output = document.querySelector(".run-command pre");
+    if(button.disabled) return;
+
+    var target = document.querySelector(".run-command #target").value;
+    var command = document.querySelector(".run-command #command").value;
+    if(target === "") target = "*";
+    if(command === "") return;
+
+    button.disabled = true;
+    output.innerHTML = "Loading...";
+
+    this.runFunction(target, "sys.doc " + command)
+      .then(this._onRunReturn, this._onRunReturn);
+  }
+
   _onRun() {
     var button = document.querySelector(".run-command input[type='submit']");
     var output = document.querySelector(".run-command pre");
@@ -168,7 +188,8 @@ class API {
     button.disabled = true;
     output.innerHTML = "Loading...";
 
-    func.then(this._onRunReturn, this._onRunReturn);
+    this.runFunction(target, command)
+      .then(this._onRunReturn, this._onRunReturn);
   }
 
   _onRunReturn(data) {
@@ -177,6 +198,38 @@ class API {
 
     var outputContainer = document.querySelector(".run-command pre");
     outputContainer.innerHTML = "";
+
+    for(var i = 0; i < hostnames.length; i++) {
+      var hostname = hostnames[i];
+      var output = response[hostname];
+      if(typeof output !== 'object') {
+        continue;
+      }
+      let isSysDocOutput = true;
+      for(let key of Object.keys(output)) {
+        if(typeof output[key] !== 'string') {
+          isSysDocOutput = false;
+          break;
+        }
+      }
+      if(!isSysDocOutput)
+        break;
+
+      for(let key of Object.keys(output).sort()) {
+        let out = output[key];
+        out = out.replace(/&/g, "&amp;");
+        out = out.replace(/</g, "&lt;");
+        out = out.replace(/>/g, "&gt;");
+        out = out.trimEnd();
+        outputContainer.innerHTML +=
+          `<div class='hostname'>${key}</div>:<br>` +
+          '<pre style="height: initial; overflow-y: initial;">' + out + '</pre>';
+      }
+
+      // sabotage any further output
+      hostnames = [];
+      break;
+    }
 
     for(var i = 0; i < hostnames.length; i++) {
       var hostname = hostnames[i];
