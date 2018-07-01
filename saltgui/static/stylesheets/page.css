@@ -144,6 +144,12 @@ pre .hostname:first-of-type {
   margin-top: 0;
 }
 
+#cmdbox .run-command-button {
+  display: inline-block;
+  width: initial;
+  vertical-align: top;
+}
+
 #popup_runcommand {
   display: none;
 }

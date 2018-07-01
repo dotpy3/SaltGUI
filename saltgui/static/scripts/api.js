@@ -6,10 +6,40 @@ class API {
     this._callMethod = this._callMethod.bind(this);
     this._fetch = this._fetch.bind(this);
     this._getRunParams = this._getRunParams.bind(this);
+    this._manualRunMenuHtmlDoc0Run = this._manualRunMenuHtmlDoc0Run.bind(this);
+    this._manualRunMenuHtmlDoc1Prepare = this._manualRunMenuHtmlDoc1Prepare.bind(this);
+    this._manualRunMenuHtmlDoc1Run = this._manualRunMenuHtmlDoc1Run.bind(this);
+    this._manualRunMenuHtmlDoc2Prepare = this._manualRunMenuHtmlDoc2Prepare.bind(this);
+    this._manualRunMenuHtmlDoc2Run = this._manualRunMenuHtmlDoc2Run.bind(this);
+    this._manualRunMenuHtmlDoc3Prepare = this._manualRunMenuHtmlDoc3Prepare.bind(this);
+    this._manualRunMenuHtmlDoc3Run = this._manualRunMenuHtmlDoc3Run.bind(this);
+    this._manualRunMenuSysDocPrepare = this._manualRunMenuSysDocPrepare.bind(this);
+    this._manualRunMenuSysDocRun = this._manualRunMenuSysDocRun.bind(this);
     this._onDocu = this._onDocu.bind(this);
     this._onHelp = this._onHelp.bind(this);
     this._onRun = this._onRun.bind(this);
     this._onRunReturn = this._onRunReturn.bind(this);
+    this._toggleManualRun = this._toggleManualRun.bind(this);
+
+    this.documentationUrl = "https://docs.saltstack.com/en/latest/ref/";
+    this.externalLink = "&nbsp;<img src='static/images/externallink.png' style='width:12px'>";
+
+    var cmdbox = document.querySelector(".run-command #cmdbox");
+    var menu = new DropDownMenu(cmdbox);
+    menu.addMenuItem(
+      this._manualRunMenuSysDocPrepare,
+      this._manualRunMenuSysDocRun);
+    menu.addMenuItem("Module&nbsp;reference" + this.externalLink,
+      this._manualRunMenuHtmlDoc0Run);
+    menu.addMenuItem(
+      this._manualRunMenuHtmlDoc1Prepare,
+      this._manualRunMenuHtmlDoc1Run);
+    menu.addMenuItem(
+      this._manualRunMenuHtmlDoc2Prepare,
+      this._manualRunMenuHtmlDoc2Run);
+    menu.addMenuItem(
+      this._manualRunMenuHtmlDoc3Prepare,
+      this._manualRunMenuHtmlDoc3Run);
 
     this._registerEventListeners();
   }
@@ -35,151 +65,43 @@ class API {
     } );
     document.querySelector(".run-command input[type='submit']")
       .addEventListener('click', this._onRun);
-    document.querySelector(".run-command #help")
-      .addEventListener('click', this._onHelp);
-    document.querySelector(".run-command #docu")
-      .addEventListener('click', this._onDocu);
   }
 
-  _onHelp() {
+  _getKeywordFragments() {
     var command = document.querySelector(".run-command #command").value;
+    // remove the command arguments
     command = command.trim().replace(/ .*/, "");
+    // remove trailing ".", typically found between categoryname and function name
+    // but user wants to lookup the commands from the category
+    command = command.trim().replace(/[.]*$/, "");
     var cmd = command.split(".");
 
-    // unfortunatelly the urls are inconsistent
-    // with the package names
+    // re-organize the command with its formal category
     switch(cmd[0]){
     case "":
-      cmd = [];
-      break;
-    case "auth":
-      break;
-    case "beacon":
-    case "beacons":
-      cmd[0] = "beacons";
-      break;
-    case "cache":
-      break;
-    case "cloud":
-    case "clouds":
-      cmd[0] = "clouds";
-      break;
-    case "engine":
-    case "engines":
-      cmd[0] = "engines";
-      break;
-    case "execution":
-    case "modules":
-      cmd[0] = "modules";
-      break;
-    case "executor":
-    case "executors":
-      cmd[0] = "executor";
-      break;
-    case "fileserver":
-    case "file_server":
-      cmd[0] = "file_server";
-      break;
-    case "grain":
-    case "grains":
-      break;
-    case "master":
-    case "tops":
-      cmd[0] = "tops";
-      break;
-    case "netapi":
-      break;
-    case "output":
-      break;
-    case "pillar":
-    case "pillars":
-      cmd[0] = "pillar";
-      break;
-    case "proxy":
-      break;
-    case "queue":
-    case "queues":
-      cmd[0] = "queues";
-      break;
-    case "renderer":
-    case "renderers":
-      cmd[0] = "renderers";
-      break;
-    case "returner":
-    case "returners":
-      cmd[0] = "returners";
-      break;
-    case "roster":
-    case "rosters":
-      cmd[0] = "roster";
-      break;
-    case "runner":
-    case "runners":
-      cmd[0] = "runners";
-      break;
-    case "sdb":
-      break;
-    case "serializer":
-    case "serializers":
-      cmd[0] = "serializers";
-      break;
-    case "state":
-    case "states":
-      cmd[0] = "states";
-      break;
-    case "thorium":
+      cmd = ["modules"];
       break;
     case "wheel":
+      // we recognize this category
+      break;
+    case "modules":
+      // we recognize this category
       break;
     default:
+      // all unknown categories are actually modules
       cmd.unshift("modules");
     }
 
-    var url = "https://docs.saltstack.com/en/latest/ref/";
-    switch(cmd.length){
-    case 0:
-      break;
-    case 1:
-      url += cmd[0] + "/all/index.html";
-      break;
-    case 2:
-      if(cmd[0] === "modules")
-        url += cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html";
-      else
-        url += cmd[0] + "/salt." + cmd[0] + "." + cmd[1] + ".html";
-      break;
-    default: // 3 and more
-      if(cmd[0] !== "modules")
-        return;
-      url += cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html#salt." + cmd[0] + "." + cmd[1] + "." + cmd[2];
-    }
-
-    window.open(url, '_blank');
-  }
-
-  _onDocu() {
-    var button = document.querySelector(".run-command input[type='submit']");
-    var output = document.querySelector(".run-command pre");
-    if(button.disabled) return;
-
-    var target = document.querySelector(".run-command #target").value;
-    var command = document.querySelector(".run-command #command").value;
-    if(target === "") target = "*";
-    if(command === "") return;
-
-    button.disabled = true;
-    output.innerHTML = "Loading...";
-
-    this.runFunction(target, "sys.doc " + command)
-      .then(this._onRunReturn, this._onRunReturn);
+    return cmd;
   }
 
   _onRun() {
     var button = document.querySelector(".run-command input[type='submit']");
-    var output = document.querySelector(".run-command pre");
     if(button.disabled) return;
+    var output = document.querySelector(".run-command pre");
 
     var target = document.querySelector(".run-command #target").value;
+    if(target === "") return;
     var command = document.querySelector(".run-command #command").value;
 
     var func = this._getRunParams(target, command);
@@ -207,6 +129,11 @@ class API {
       }
       let isSysDocOutput = true;
       for(let key of Object.keys(output)) {
+
+        // e.g. for "test.rand_str"
+        if(output[key] === null)
+          continue;
+
         if(typeof output[key] !== 'string') {
           isSysDocOutput = false;
           break;
@@ -215,20 +142,33 @@ class API {
       if(!isSysDocOutput)
         break;
 
+      // some commands do not have help-text
+      // some commands do not even exist anywhere
+      // prevent an empty display by still using
+      // the standard output form when that happens
+      var cnt = 0;
+
       for(let key of Object.keys(output).sort()) {
         let out = output[key];
+        if(out === null) continue;
+        // the output is already pre-ed
+        out = out.replace(/\n[ \t]*<[\/]?pre>[ \t]*\n/g, "\n");
+        // turn text into html
         out = out.replace(/&/g, "&amp;");
         out = out.replace(/</g, "&lt;");
         out = out.replace(/>/g, "&gt;");
         out = out.trimEnd();
         outputContainer.innerHTML +=
-          `<div class='hostname'>${key}</div>:<br>` +
+          `<span class='hostname'>${key}</span>:<br>` +
           '<pre style="height: initial; overflow-y: initial;">' + out + '</pre>';
+        cnt += 1;
       }
 
-      // sabotage any further output
-      hostnames = [];
-      break;
+      if(cnt) {
+        // sabotage any further output
+        hostnames = [];
+        break;
+      }
     }
 
     for(var i = 0; i < hostnames.length; i++) {
@@ -243,11 +183,107 @@ class API {
       }
 
       outputContainer.innerHTML +=
-        `<div class='hostname'>${hostname}</div>: ${output}<br>`;
+        `<span class='hostname'>${hostname}</span>: ${output}<br>`;
     }
 
     var button = document.querySelector(".run-command input[type='submit']");
     button.disabled = false;
+  }
+
+  _manualRunMenuSysDocPrepare(menuitem) {
+    var command = document.querySelector(".run-command #command").value;
+    // remove the command arguments
+    command = command.trim().replace(/ .*/, "");
+    if(!command) {
+      menuitem.innerText = "Run 'sys.doc' (slow)";
+      menuitem.style.display = "inline-block";
+    } else if(command === "wheel" || command.startsWith("wheel.")) {
+      menuitem.innerText = "Run 'sys.doc " + command + "' (disabled)";
+      menuitem.style.display = "none";
+    } else {
+      menuitem.innerText = "Run 'sys.doc " + command + "'";
+      menuitem.style.display = "inline-block";
+    }
+  }
+
+  _manualRunMenuSysDocRun() {
+    var button = document.querySelector(".run-command input[type='submit']");
+    if(button.disabled) return;
+    var output = document.querySelector(".run-command pre");
+
+    var target = document.querySelector(".run-command #target").value;
+    // the help text is taken from the first minion that answers
+    // when no target is selectes, just ask all minions
+    if(target === "") target = "*";
+
+    var command = document.querySelector(".run-command #command").value;
+    command = command.trim().replace(/ .*/, "");
+    // command can be empty here
+
+    button.disabled = true;
+    output.innerHTML = "Loading...";
+
+    this.runFunction(target, "sys.doc " + command)
+      .then(this._onRunReturn, this._onRunReturn);
+  }
+
+  _manualRunMenuHtmlDoc0Run(menuitem) {
+    var url = this.documentationUrl;
+    window.open(url);
+  }
+
+  _manualRunMenuHtmlDoc1Prepare(menuitem) {
+    var cmd = this._getKeywordFragments();
+    if(cmd.length >= 1) {
+      menuitem.innerHTML = "'" + cmd[0] + "' modules" + this.externalLink;
+      menuitem.style.display = "inline-block";
+    } else {
+      menuitem.innerText = "'XXX' modules (disabled)";
+      menuitem.style.display = "none";
+    }
+  }
+
+  _manualRunMenuHtmlDoc1Run(menuitem) {
+    var cmd = this._getKeywordFragments();
+    var url = this.documentationUrl + cmd[0] + "/all/index.html";
+    window.open(url);
+  }
+
+  _manualRunMenuHtmlDoc2Prepare(menuitem) {
+    var cmd = this._getKeywordFragments();
+    if(cmd.length >= 2) {
+      menuitem.innerHTML = "'" + cmd[0] + "." + cmd[1] + "' functions'" + this.externalLink;
+      menuitem.style.display = "inline-block";
+    } else {
+      menuitem.innerText = "'xxx.xxx' functions' (disabled)";
+      menuitem.style.display = "none";
+    }
+  }
+
+  _manualRunMenuHtmlDoc2Run(menuitem) {
+    var cmd = this._getKeywordFragments();
+    // e.g. "modules.test"
+    var url = this.documentationUrl + cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html";
+    window.open(url);
+  }
+
+  _manualRunMenuHtmlDoc3Prepare(menuitem) {
+    var cmd = this._getKeywordFragments();
+    if(cmd.length >= 3) {
+      menuitem.innerHTML = "'" + cmd[0] + "." + cmd[1] + "." + cmd[2] + "' function'" + this.externalLink;
+      menuitem.style.display = "inline-block";
+    } else {
+      menuitem.innerText = "'xxx.xxx.xxx' function' (disabled)";
+      menuitem.style.display = "none";
+    }
+  }
+
+  _manualRunMenuHtmlDoc3Run(menuitem) {
+    var cmd = this._getKeywordFragments();
+    // 3 and more (use only first 3)
+    // e.g. "modules.test.ping"
+    var url = this.documentationUrl + cmd[0] + "/all/salt." + cmd[0] + "." + cmd[1] + ".html#salt." + cmd[0] + "." + cmd[1] + "." + cmd[2];
+    window.open(url);
   }
 
   _toggleManualRun(evt) {
