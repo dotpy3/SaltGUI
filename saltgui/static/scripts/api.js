@@ -234,7 +234,11 @@ class API {
 
   _manualRunMenuHtmlDoc1Prepare(menuitem) {
     var cmd = this._getKeywordFragments();
-    if(cmd.length >= 1) {
+    if(cmd.length >= 1 && cmd[0] === "modules") {
+      // match the web page title
+      menuitem.innerHTML = "'execution' modules" + this.externalLink;
+      menuitem.style.display = "inline-block";
+    } else if(cmd.length >= 1) {
       menuitem.innerHTML = "'" + cmd[0] + "' modules" + this.externalLink;
       menuitem.style.display = "inline-block";
     } else {
