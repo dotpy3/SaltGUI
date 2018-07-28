@@ -191,17 +191,26 @@ class API {
   }
 
   _manualRunMenuSysDocPrepare(menuitem) {
+    var target = document.querySelector(".run-command #target").value;
     var command = document.querySelector(".run-command #command").value;
     // remove the command arguments
     command = command.trim().replace(/ .*/, "");
     if(!command) {
-      menuitem.innerText = "Run 'sys.doc' (slow)";
+      if(target) {
+        menuitem.innerText = "Run 'sys.doc' (slow) on target";
+      } else {
+        menuitem.innerText = "Run 'sys.doc' (slow) on all minions";
+      }
       menuitem.style.display = "inline-block";
     } else if(command === "wheel" || command.startsWith("wheel.")) {
       menuitem.innerText = "Run 'sys.doc " + command + "' (disabled)";
       menuitem.style.display = "none";
     } else {
-      menuitem.innerText = "Run 'sys.doc " + command + "'";
+      if(target) {
+        menuitem.innerText = "Run 'sys.doc " + command + "' on target";
+      } else {
+        menuitem.innerText = "Run 'sys.doc " + command + "' on all minions";
+      }
       menuitem.style.display = "inline-block";
     }
   }
