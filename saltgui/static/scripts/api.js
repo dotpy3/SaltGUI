@@ -121,8 +121,8 @@ class API {
     var outputContainer = document.querySelector(".run-command pre");
     outputContainer.innerHTML = "";
 
-    for(var i = 0; i < hostnames.length; i++) {
-      var hostname = hostnames[i];
+    for(let i = 0; i < hostnames.length; i++) {
+      let hostname = hostnames[i];
       var output = response[hostname];
       if(typeof output !== 'object') {
         continue;
@@ -171,10 +171,9 @@ class API {
       }
     }
 
-    for(var i = 0; i < hostnames.length; i++) {
-      var hostname = hostnames[i];
-
-      var output = response[hostname];
+    for(let i = 0; i < hostnames.length; i++) {
+      let hostname = hostnames[i];
+      let output = response[hostname];
 
       // when you do a state.apply for example you get a json response.
       // let's format it nicely here
