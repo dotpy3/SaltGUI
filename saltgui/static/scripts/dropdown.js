@@ -17,16 +17,16 @@ class DropDownMenu {
     }
     this.menuDropdown.appendChild(menuButton);
     this.menuDropdownContent = Route._createDiv("menu-dropdown-content", "");
-    menuDropdown.appendChild(this.menuDropdownContent);
+    this.menuDropdown.appendChild(this.menuDropdownContent);
     let here = this;
-    menuDropdown.addEventListener('mouseenter', function(evt) {
+    this.menuDropdown.addEventListener('mouseenter', function(evt) {
       for(let chld of here.menuDropdownContent.children) {
         var verifyCallback = chld.verifyCallback;
         if(!verifyCallback) continue;
         verifyCallback(chld);
       }
     }.bind(this));
-    element.appendChild(menuDropdown);
+    element.appendChild(this.menuDropdown);
   }
 
   // Add a menu item at the end of this dropdown menu
