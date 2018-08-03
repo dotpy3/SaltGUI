@@ -15,8 +15,6 @@ class API {
     this._manualRunMenuHtmlDoc3Run = this._manualRunMenuHtmlDoc3Run.bind(this);
     this._manualRunMenuSysDocPrepare = this._manualRunMenuSysDocPrepare.bind(this);
     this._manualRunMenuSysDocRun = this._manualRunMenuSysDocRun.bind(this);
-    this._onDocu = this._onDocu.bind(this);
-    this._onHelp = this._onHelp.bind(this);
     this._onRun = this._onRun.bind(this);
     this._onRunReturn = this._onRunReturn.bind(this);
     this._toggleManualRun = this._toggleManualRun.bind(this);
@@ -115,7 +113,7 @@ class API {
     button.disabled = true;
     output.innerHTML = "Loading...";
 
-    this.runFunction(target, command)
+    this._getRunParams(target, command)
       .then(this._onRunReturn, this._onRunReturn);
   }
 
@@ -236,7 +234,7 @@ class API {
     button.disabled = true;
     output.innerHTML = "Loading...";
 
-    this.runFunction(target, "sys.doc " + command)
+    this._getRunParams(target, "sys.doc " + command)
       .then(this._onRunReturn, this._onRunReturn);
   }
 
