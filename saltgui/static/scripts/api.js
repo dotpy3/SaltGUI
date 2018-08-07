@@ -461,10 +461,13 @@ class API {
     }
     if(params.client === "local" && jobRunType.innerText === "batch") {
       params.client = "local_batch";
-      // TODO
-      params.batch = "10%";
-      // TODO
-      params.batch_wait = 3;
+
+      var batchSize = document.querySelector(".batchSize");
+      params.batch = batchSize.innerText;
+
+      var batchWait = document.querySelector(".batchWait");
+      params.batch_wait = parseInt(batchWait.innerText);
+
       // it returns the actual output in a group of batches
     }
 
