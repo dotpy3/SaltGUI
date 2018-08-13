@@ -25,7 +25,9 @@ class API {
     this._setRunTypeBatchWait10 = this._setRunTypeBatchWait10.bind(this);
     this._setRunTypeBatchWait30 = this._setRunTypeBatchWait30.bind(this);
     this._setRunTypeBatchWait60 = this._setRunTypeBatchWait60.bind(this);
+    this._setRunTypeDefault = this._setRunTypeDefault.bind(this);
     this._setRunTypeNormal = this._setRunTypeNormal.bind(this);
+    this._toggleManualRun = this._toggleManualRun.bind(this);
 
     this._registerEventListeners();
   }
@@ -192,6 +194,11 @@ class API {
     this._updateRunTypeText();
   }
 
+  _setRunTypeDefault() {
+    this._setRunTypeNormal();
+    this.menuRunType.setTitle("");
+  }
+
   _setRunTypeNormal() {
     var jobRunType = document.querySelector(".jobRunType");
     jobRunType.innerText = "normal";
@@ -321,6 +328,9 @@ class API {
     if(isShowing && evt.target.className !== "popup" && evt.target.className !== "nearlyvisiblebutton") return;
     manualRun.style.display = isShowing ? "none" : "block";
     document.body.style["overflow-y"] = isShowing ? "scroll" : "hidden";
+
+    // reset to default, so that its value is initially hidden
+    this._setRunTypeDefault();
 
     // test whether the command may have caused an update to the list
     // the user may have altered the text after running the command, just ignore that
