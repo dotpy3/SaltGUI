@@ -10,6 +10,7 @@ class DropDownMenu {
       this.menuDropdown.classList.add("hamburger");
     } else {
       // 9658 = BLACK RIGHT-POINTING POINTER
+      // assume it will be a command menu
       this.menuButton = Route._createDiv("menu-dropdown", "&#9658;");
       // hide the menu until it receives menu-items
       this.menuDropdown.style.display = "none";
@@ -35,7 +36,11 @@ class DropDownMenu {
   }
 
   setTitle(title) {
-    this.menuButton.innerHTML = title + "&nbsp;&#9658;";
+    // Setting the title implies that we are interested
+    // in the menu values, rather than their actions.
+    // Use a slightly different clue for that.
+    // 9660 = BLACK DOWN-POINTING TRIANGLE
+    this.menuButton.innerHTML = title + "&nbsp;&#9660;";
   }
 
   showMenu() {

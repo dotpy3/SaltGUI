@@ -52,6 +52,7 @@ class API {
 
     var runblock = document.getElementById("runblock");
     this.menuRunType = new DropDownMenu(runblock);
+    this.menuRunType.setTitle("");
     this.menuRunType.addMenuItem("Normal", this._setRunTypeNormal);
     this.menuRunType.addMenuItem("Async", this._setRunTypeAsync);
     this.menuRunType.addMenuItem("Batch", this._setRunTypeBatch);
