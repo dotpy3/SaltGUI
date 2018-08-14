@@ -122,7 +122,7 @@ class API {
 
   _onRunReturn(data) {
     var response = data.return[0];
-    var hostnames = Object.keys(response);
+    var hostnames = Object.keys(response).sort();
 
     var outputContainer = document.querySelector(".run-command pre");
     outputContainer.innerHTML = "";
@@ -131,6 +131,11 @@ class API {
       let hostname = hostnames[i];
       var output = response[hostname];
       if(typeof output !== 'object') {
+        continue;
+      }
+      if(!output) {
+        // some commands do not have help-text
+        // e.g. wheel.key.get_key
         continue;
       }
       let isSysDocOutput = true;
@@ -148,8 +153,7 @@ class API {
       if(!isSysDocOutput)
         break;
 
-      // some commands do not have help-text
-      // some commands do not even exist anywhere
+      // some commands do not exist anywhere
       // prevent an empty display by still using
       // the standard output form when that happens
       var cnt = 0;
@@ -181,10 +185,14 @@ class API {
       let hostname = hostnames[i];
       let output = response[hostname];
 
-      // when you do a state.apply for example you get a json response.
-      // let's format it nicely here
       if (typeof output === 'object') {
+        // when you do a state.apply for example you get a json response.
+        // let's format it nicely here
         output = JSON.stringify(output, null, 2);
+      }
+      else if (typeof output === 'string') {
+        // Or when it is documentation, strip trailing whitespace
+        output = output.replace(/[ \r\n]+$/g, "");
       }
 
       outputContainer.innerHTML +=
@@ -197,26 +205,52 @@ class API {
 
   _manualRunMenuSysDocPrepare(menuitem) {
     var target = document.querySelector(".run-command #target").value;
+    target = target ? "target" : "all minions";
     var command = document.querySelector(".run-command #command").value;
     // remove the command arguments
     command = command.trim().replace(/ .*/, "");
     if(!command) {
-      if(target) {
-        menuitem.innerText = "Run 'sys.doc' (slow) on target";
-      } else {
-        menuitem.innerText = "Run 'sys.doc' (slow) on all minions";
-      }
-      menuitem.style.display = "inline-block";
+      menuitem.innerText = "Run 'sys.doc' (slow) on " + target;
+    } else if(command === "runners" || command.startsWith("runners.")) {
+      // actually 'command' is not passed, but we select that part of the actual result
+      // too complicated to explain that here
+      command = command.substring(8);
+      if(command) command = " " + command;
+      menuitem.innerText = "Run 'runners.doc.runner" + command + "'";
     } else if(command === "wheel" || command.startsWith("wheel.")) {
-      menuitem.innerText = "Run 'sys.doc " + command + "' (disabled)";
-      menuitem.style.display = "none";
+      // actually 'command' is not passed, but we select that part of the actual result
+      // too complicated to explain that here
+      command = command.substring(6);
+      if(command) command = " " + command;
+      menuitem.innerText = "Run 'runners.doc.wheel" + command + "'";
     } else {
-      if(target) {
-        menuitem.innerText = "Run 'sys.doc " + command + "' on target";
-      } else {
-        menuitem.innerText = "Run 'sys.doc " + command + "' on all minions";
+      menuitem.innerText = "Run 'sys.doc " + command + "' on " + target;
+    }
+  }
+
+  _fixDocuReturn(response, visualKey, filterKey) {
+    if(!response || typeof response !== "object") {
+      // strange --> don't try to fix anything
+      return;
+    }
+
+    for(let hostname of Object.keys(response)) {
+      if(typeof response[hostname] !== "object") {
+        // make sure it is an object (instead of e.g. "false" for an offline minion)
+        response[hostname] = { };
       }
-      menuitem.style.display = "inline-block";
+
+      let hostReponse = response[hostname];
+      for(let key of Object.keys(hostResponse)) {
+        if(key === filterKey) continue;
+        if(!filterKey || key.startsWith(filterKey + ".")) continue;
+        delete hostResponse[key];
+      }
+
+      if(Object.keys(hostResponse).length == 0) {
+        // no documentation found (or left)
+        hostResponse[visualKey] = "no documentation found";
+      }
     }
   }
 
@@ -230,6 +264,7 @@ class API {
     // when no target is selectes, just ask all minions
     if(target === "") target = "*";
 
+    // do not use the command-parser
     var command = document.querySelector(".run-command #command").value;
     command = command.trim().replace(/ .*/, "");
     // command can be empty here
@@ -237,8 +272,33 @@ class API {
     button.disabled = true;
     output.innerHTML = "Loading...";
 
-    this._getRunParams(target, "sys.doc " + command)
-      .then(this._onRunReturn, this._onRunReturn);
+    if(command === "runners" || command.startsWith("runners.")) {
+      command = command.substring(8);
+      this._getRunParams(target, "runners.doc.runner")
+        .then(
+          arg => {
+            arg.return[0] = {"master": arg.return[0]};
+            this._fixDocuReturn(arg.return[0], "runners." + command, command);
+            this._onRunReturn(arg); },
+          this._onRunReturn);
+    } else if(command === "wheel" || command.startsWith("wheel.")) {
+      command = command.substring(6);
+      this._getRunParams(target, "runners.doc.wheel")
+        .then(
+          arg => {
+            arg.return[0] = {"master": arg.return[0]};
+            this._fixDocuReturn(arg.return[0], "wheel." + command, command);
+            this._onRunReturn(arg); },
+          this._onRunReturn);
+    } else {
+      // regular command
+      this._getRunParams(target, "sys.doc " + command)
+        .then(
+          arg => {
+            this._fixDocuReturn(arg.return[0], command, command);
+            this._onRunReturn(arg); },
+          this._onRunReturn);
+    }
   }
 
   _manualRunMenuHtmlDoc0Run(menuitem) {
