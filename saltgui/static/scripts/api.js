@@ -91,11 +91,11 @@ class API {
     default:
       // all unknown categories are actually modules
       cmd.unshift("modules");
+    }
 
-      if(cmd[1] === "sys") {
-        // e.g. sys.doc actually is available as sysmod.doc on website
-        cmd[0] = "sysmod";
-      }
+    if(cmd.length >= 2 && cmd[0] === "modules" && cmd[1] === "sys") {
+      // e.g. sys.doc actually is available as sysmod.doc on website
+      cmd[1] = "sysmod";
     }
 
     return cmd;
