@@ -79,6 +79,9 @@ class API {
     case "":
       cmd = ["modules"];
       break;
+    case "runners":
+      // we recognize this category
+      break;
     case "wheel":
       // we recognize this category
       break;
